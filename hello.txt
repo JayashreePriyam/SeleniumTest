@@ -1,2 +1,53 @@
 hello
 add more
+
+
+Running Plink from Java to execute UI screen commands in PuTTY involves a few different steps. Here's a high-level overview of the process and some code snippets to get you started.
+
+1. Some background knowledge:
+   - Plink is a command-line utility that comes with the PuTTY suite, and it's used for non-interactive SSH connections.
+   - PuTTY is a free and open-source terminal emulator, serial console, and network file transfer application.
+
+2. Using Plink with Java:
+   - You can use the `ProcessBuilder` class in Java to execute Plink commands from your Java application.
+   - Ensure that Plink is installed on the system where your Java application will run.
+
+3. Establishing an SSH connection:
+   - You can use Plink to establish an SSH connection to the target host. Here's a basic example of how you might do this in Java:
+
+```java
+try {
+    ProcessBuilder pb = new ProcessBuilder("plink", "-ssh", "username@hostname", "-pw", "password", "command1", "command2");
+    pb.redirectErrorStream(true);
+    Process process = pb.start();
+    process.waitFor();
+} catch (IOException | InterruptedException e) {
+    e.printStackTrace();
+}
+```
+
+In this example, replace `"username"`, `"hostname"`, and `"password"` with the appropriate values for your SSH connection. Also, replace `"command1"`, `"command2"`, etc., with the UI screen commands you want to execute.
+
+4. Sending UI screen commands:
+   - Once the SSH connection is established, you can send UI screen commands to the PuTTY session using Plink. For example:
+
+```java
+try {
+    ProcessBuilder pb = new ProcessBuilder("plink", "-ssh", "username@hostname", "-pw", "password", "screen", "command1", "command2");
+    pb.redirectErrorStream(true);
+    Process process = pb.start();
+    process.waitFor();
+} catch (IOException | InterruptedException e) {
+    e.printStackTrace();
+}
+```
+
+Replace "command1", "command2", etc., with the specific UI screen commands you want to execute on the remote system.
+
+5. Handling authentication and security:
+   - Keep in mind that embedding passwords in your source code is generally not recommended for security reasons. Consider using alternative authentication methods, such as SSH key pairs.
+
+6. Error handling and logging:
+   - It's essential to handle exceptions and log errors appropriately when working with external processes in Java.
+
+Please note that the example code provided is just a starting point and may need to be adapted to fit your specific use case, including error handling, security considerations, and any other requirements of the environment in which the solution will be deployed. Additionally, ensure that you have the necessary permissions to execute Plink commands and connect to the remote host from your Java application.
