@@ -1,0 +1,28 @@
+For executing a .txt or .sh file on a remote server using Plink in Java with an SSH saved session without requiring a password, you can use the ProcessBuilder class along with the -load parameter to specify the stored session.
+
+Here's an example of how to achieve this:
+
+```java
+try {
+    String sessionName = "your_saved_session_name"; // Replace with the name of your saved session in PuTTY
+    ProcessBuilder pbTxt = new ProcessBuilder("plink", "-load", sessionName, "cat /path/to/script.txt");
+    pbTxt.redirectErrorStream(true);
+    Process processTxt = pbTxt.start();
+    // Handle the process output for .txt file as needed
+
+    ProcessBuilder pbSh = new ProcessBuilder("plink", "-load", sessionName, "bash /path/to/script.sh");
+    pbSh.redirectErrorStream(true);
+    Process processSh = pbSh.start();
+    // Handle the process output for .sh file as needed
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+In this example, you can use the "-load" option with the name of the saved session in PuTTY to establish an SSH connection using the stored session details. Replace "your_saved_session_name" with the actual name of the saved session in PuTTY.
+
+You will also replace "/path/to/script.txt" with the actual path to the .txt file on the remote server and "/path/to/script.sh" with the actual path to the .sh file on the remote server.
+
+By using the stored session, you can avoid the need to specify the username and password within the Java code, as the session will contain the necessary authentication details.
+
+Remember to handle exceptions and add appropriate error checking to ensure the reliability of the code when using ProcessBuilder to execute Plink commands. Also, ensure that the stored session in PuTTY contains the required authentication details and settings for the remote SSH connection.
