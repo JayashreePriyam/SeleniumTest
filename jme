@@ -10,3 +10,15 @@ pause
 REM Start JMeter without GUI
 start java -jar "C:\path\to\your\jmeter\bin\ApacheJMeter.jar" -n -t "C:\path\to\your\jmxfile.jmx" -l "C:\path\to\resultfile.jtl"
 pause
+
+
+@echo off
+REM Stopping existing JMeter instance
+taskkill /F /IM java.exe
+
+REM Waiting a bit after killing the process
+timeout /T 5 /NOBREAK
+
+REM Starting JMeter without GUI with correct Java options
+cd "C:\path\to\your\jmeter\bin"
+start java -XX:+HeapDumpOnOutOfMemoryError -jar ApacheJMeter.jar -n -t "C:\path\to\your\jmxfile.jmx" -l "C:\path\to\resultfile.jtl"
