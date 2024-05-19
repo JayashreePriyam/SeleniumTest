@@ -1,0 +1,41 @@
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class FileMover {
+    public static void main(String[] args) {
+        String sourceDirPath = "C:\\path\\to\\source";  // Set your source directory path here
+        File sourceDir = new File(sourceDirPath);
+
+        // Format current date and time to create a unique folder name
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+        String archiveDirName = "Archive_" + sdf.format(new Date());
+        File archiveDir = new File(sourceDir, archiveDirName);
+
+        // Create the archive directory
+        if (!archiveDir.exists()) {
+            archiveDir.mkdir();
+        }
+
+        // Move each file in the source directory to the new archive directory
+        File[] files = sourceDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {  // Ensure it's not a directory
+                    Path sourcePath = file.toPath();
+                    Path destPath = Paths.get(archiveDir.getPath(), file.getName());
+                    try {
+                        Files.move(sourcePath, destPath);
+                        System.out.println("Moved: " + file.getName());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+}
