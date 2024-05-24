@@ -1,0 +1,68 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+
+public class RunJMeter {
+
+    public static void main(String[] args) {
+        // Define paths
+        String javaPath = "C:\\path\\to\\java\\bin\\java.exe";
+        String jmeterJarPath = "C:\\Trusted\\apache-jmeter-5.6.2\\bin\\ApacheJMeter.jar";
+        String testPlan = "C:\\path\\to\\your\\testplan.jmx";
+        String jtlFile = "C:\\path\\to\\results\\file.jtl";
+        String logFile = "C:\\path\\to\\logs\\jmeter.log";
+
+        // Build command array
+        String[] command = {
+            "cmd.exe", "/c",
+            javaPath, "-jar", jmeterJarPath,
+            "-n", "-t", testPlan,
+            "-l", jtlFile,
+            "-j", logFile
+        };
+
+        System.out.println("Executing command: " + Arrays.toString(command));
+
+        // Create ProcessBuilder
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.directory(new File("C:\\Trusted\\apache-jmeter-5.6.2\\bin")); // Set working directory
+        processBuilder.redirectErrorStream(true);
+
+        try {
+            // Start process
+            Process process = processBuilder.start();
+
+            // Read output
+            new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            // Read error output
+            new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.err.println(line);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            // Wait for process to complete
+            int exitCode = process.waitFor();
+            System.out.println("JMeter exited with code: " + exitCode);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
