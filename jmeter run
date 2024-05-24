@@ -8,19 +8,19 @@ public class RunJMeter {
 
     public static void main(String[] args) {
         // Define paths
-        String javaPath = "\"C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path\\java.exe\"";
-        String jmeterJarPath = "\"C:\\Trusted\\apache-jmeter-5.6.2\\bin\\ApacheJMeter.jar\"";
-        String testPlan = "\"C:\\Users\\fal7g81\\Documents\\E2E CommerceHub Jmeter Execution\\CommHub Framework\\gbs_06626_isqa_commhub-Orig\\gbs_06626_isqa_commhub-Ori\\CommHub\\CommHub_Jmx\\HomeDepot_CNP\\CNP_NashvilleDirect_CERT.jmx\"";
-        String jtlFile = "\"C:\\Users\\fal7g81\\Documents\\E2E CommerceHub Jmeter Execution\\file.jtl\"";
-        String logFile = "\"C:\\Users\\fal7g81\\Documents\\E2E CommerceHub Jmeter Execution\\jmeter.log\"";
+        String javaPath = "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path\\java.exe";
+        String jmeterJarPath = "C:\\Trusted\\apache-jmeter-5.6.2\\bin\\ApacheJMeter.jar";
+        String testPlan = "C:\\Users\\fal7g81\\Documents\\E2E CommerceHub Jmeter Execution\\CommHub Framework\\gbs_06626_isqa_commhub-Orig\\gbs_06626_isqa_commhub-Ori\\CommHub\\CommHub_Jmx\\HomeDepot_CNP\\CNP_NashvilleDirect_CERT.jmx";
+        String jtlFile = "C:\\Users\\fal7g81\\Documents\\E2E CommerceHub Jmeter Execution\\file.jtl";
+        String logFile = "C:\\Users\\fal7g81\\Documents\\E2E CommerceHub Jmeter Execution\\jmeter.log";
 
         // Build command array
         String[] command = {
             "cmd.exe", "/c",
-            javaPath, "-jar", jmeterJarPath,
-            "-n", "-t", testPlan,
-            "-l", jtlFile,
-            "-j", logFile
+            "\"" + javaPath + "\"", "-jar", "\"" + jmeterJarPath + "\"",
+            "-n", "-t", "\"" + testPlan + "\"",
+            "-l", "\"" + jtlFile + "\"",
+            "-j", "\"" + logFile + "\""
         };
 
         System.out.println("Executing command: " + Arrays.toString(command));
