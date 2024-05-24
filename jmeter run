@@ -1,0 +1,56 @@
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class RunJMeter {
+
+    public static void main(String[] args) {
+        // Define paths
+        String jmeterPath = "C:\\path\\to\\apache-jmeter\\bin\\jmeter.bat";
+        String javaPath = "C:\\path\\to\\java";
+        String testPlan = "C:\\path\\to\\your\\testplan.jmx";
+        String jtlFile = "C:\\path\\to\\results\\file.jtl";
+        String logFile = "C:\\path\\to\\logs\\jmeter.log";
+
+        // Build command
+        List<String> command = new ArrayList<>();
+        command.add(jmeterPath);
+        command.add("-Djava.home=" + javaPath);
+        command.add("-n");
+        command.add("-t");
+        command.add(testPlan);
+        command.add("-l");
+        command.add(jtlFile);
+        command.add("-j");
+        command.add(logFile);
+
+        // Create ProcessBuilder
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.directory(new File("C:\\path\\to\\apache-jmeter\\bin")); // Set working directory
+        processBuilder.redirectErrorStream(true);
+
+        try {
+            // Start process
+            Process process = processBuilder.start();
+
+            // Read output
+            new Thread(() -> {
+                try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            // Wait for process to complete
+            int exitCode = process.waitFor();
+            System.out.println("JMeter exited with code: " + exitCode);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
