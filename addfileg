@@ -1,0 +1,114 @@
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class ExcelProcessor {
+
+    public static void main(String[] args) {
+        String filePath = "path/to/your/file.xlsx"; // Use the same file path for input and output
+
+        try (FileInputStream fileInputStream = new FileInputStream(filePath);
+             Workbook workbook = new XSSFWorkbook(fileInputStream)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            int cardTypeColumn = -1;
+            int transTypeColumn = -1;
+            int headerRowNumber = -1;
+
+            // Find the headers
+            for (Row row : sheet) {
+                for (Cell cell : row) {
+                    if (cell.getCellType() == CellType.STRING) {
+                        if (cell.getStringCellValue().equalsIgnoreCase("card type")) {
+                            cardTypeColumn = cell.getColumnIndex();
+                            headerRowNumber = cell.getRowIndex();
+                        } else if (cell.getStringCellValue().equalsIgnoreCase("trans type")) {
+                            transTypeColumn = cell.getColumnIndex();
+                            headerRowNumber = cell.getRowIndex();
+                        }
+                    }
+                }
+                if (cardTypeColumn != -1 && transTypeColumn != -1) {
+                    break;
+                }
+            }
+
+            if (cardTypeColumn == -1 || transTypeColumn == -1) {
+                System.err.println("Headers 'card type' and 'trans type' not found.");
+                return;
+            }
+
+            // Process the rows
+            int lastRowNum = sheet.getLastRowNum();
+            for (int i = headerRowNumber + 1; i <= lastRowNum; i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                Cell transTypeCell = row.getCell(transTypeColumn);
+                if (transTypeCell != null && transTypeCell.getCellType() == CellType.STRING &&
+                        transTypeCell.getStringCellValue().equalsIgnoreCase("preauth")) {
+
+                    // Shift rows to make space for the new row
+                    sheet.shiftRows(i + 1, lastRowNum, 1);
+
+                    // Create new row right below the current row
+                    Row newRow = sheet.createRow(i + 1);
+                    copyRow(row, newRow);
+
+                    // Append "preauth" to card type and trans type
+                    Cell cardTypeCell = newRow.getCell(cardTypeColumn);
+                    if (cardTypeCell == null) {
+                        cardTypeCell = newRow.createCell(cardTypeColumn);
+                    }
+                    cardTypeCell.setCellValue(row.getCell(cardTypeColumn).getStringCellValue() + " preauth");
+
+                    transTypeCell = newRow.getCell(transTypeColumn);
+                    if (transTypeCell == null) {
+                        transTypeCell = newRow.createCell(transTypeColumn);
+                    }
+                    transTypeCell.setCellValue(row.getCell(transTypeColumn).getStringCellValue() + " preauth");
+
+                    // Skip the next row as it's the one we just added
+                    i++;
+                    lastRowNum++;
+                }
+            }
+
+            // Write the updated workbook back to the same file
+            try (FileOutputStream fileOutputStream = new FileOutputStream(filePath)) {
+                workbook.write(fileOutputStream);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void copyRow(Row sourceRow, Row destinationRow) {
+        for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
+            Cell sourceCell = sourceRow.getCell(i);
+            if (sourceCell == null) continue;
+            Cell destinationCell = destinationRow.createCell(i);
+
+            switch (sourceCell.getCellType()) {
+                case STRING:
+                    destinationCell.setCellValue(sourceCell.getStringCellValue());
+                    break;
+                case NUMERIC:
+                    destinationCell.setCellValue(sourceCell.getNumericCellValue());
+                    break;
+                case BOOLEAN:
+                    destinationCell.setCellValue(sourceCell.getBooleanCellValue());
+                    break;
+                case FORMULA:
+                    destinationCell.setCellFormula(sourceCell.getCellFormula());
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
