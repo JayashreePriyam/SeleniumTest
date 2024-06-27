@@ -1,0 +1,70 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+public class JMeterTestExecutor {
+
+    public static void main(String[] args) {
+        try {
+            String jmeterHome = "path/to/your/jmeter"; // Path to your JMeter home directory
+            String jmeterBin = jmeterHome + "/bin";
+            String testPlan = "path/to/your/testplan.jmx"; // Path to your JMX file
+            String resultFile = "path/to/your/results.jtl"; // Path to save the results
+            String logFile = "path/to/your/jmeter.log"; // Path to save the log file
+
+            // JMeter command in a list
+            List<String> command = Arrays.asList(
+                "java",
+                "-jar", jmeterBin + "/ApacheJMeter.jar",
+                "-n",
+                "-t", testPlan,
+                "-l", resultFile,
+                "-j", logFile
+            );
+
+            // ProcessBuilder to run JMeter command
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.directory(new File(jmeterBin));
+            processBuilder.redirectErrorStream(true);
+
+            // Execute the JMeter command
+            Process process = processBuilder.start();
+
+            // ExecutorService to handle the process asynchronously
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<?> future = executor.submit(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+            // Wait for the process to complete
+            boolean finished = process.waitFor(30, TimeUnit.MINUTES); // Timeout after 30 minutes
+
+            if (finished) {
+                System.out.println("JMeter test completed successfully.");
+            } else {
+                System.out.println("JMeter test did not complete in time, killing the process...");
+                process.destroyForcibly();
+            }
+
+            // Ensure the future task is completed
+            future.get();
+            executor.shutdown();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
