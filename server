@@ -1,0 +1,74 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ParallelFileTransfer {
+
+    public static void main(String[] args) {
+        String remoteUser = "user";
+        String remoteHost = "host";
+        String remotePathPattern = "/remote/path/*";
+        String localPath = "C:\\local\\path\\";
+        String password = "your_password";
+
+        try {
+            // List files matching the pattern
+            String[] files = listRemoteFiles(remoteUser, remoteHost, remotePathPattern, password);
+            if (files != null) {
+                // Download each file in parallel
+                for (String file : files) {
+                    String remoteFile = remoteUser + "@" + remoteHost + ":" + file;
+                    new Thread(() -> {
+                        try {
+                            transferFile(remoteFile, localPath, password);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String[] listRemoteFiles(String user, String host, String pathPattern, String password) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder(
+            "cmd.exe", "/C",
+            "plink", "-batch", "-pw", password,
+            user + "@" + host,
+            "ls " + pathPattern
+        );
+        Process process = pb.start();
+        process.waitFor();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        StringBuilder output = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            output.append(line).append("\n");
+        }
+
+        return output.toString().split("\n");
+    }
+
+    private static void transferFile(String remoteFile, String localPath, String password) throws IOException {
+        ProcessBuilder pb = new ProcessBuilder(
+            "cmd.exe", "/C",
+            "pscp", "-batch", "-multithread", "-buffer-size", "2097152", "-pw", password,
+            remoteFile, localPath
+        );
+        Process process = pb.start();
+        try {
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                System.err.println("Transfer failed for: " + remoteFile);
+            } else {
+                System.out.println("Transfer successful for: " + remoteFile);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            e.printStackTrace();
+        }
+    }
+}
