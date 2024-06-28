@@ -1,0 +1,87 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+public class FileTransferAndExecution {
+
+    private static final String FILE_TRANSFER_COMMAND = "pscp -batch -pw your_password user@host:/remote/path/* C:/local/path/";
+
+    public static void main(String[] args) {
+        try {
+            boolean transferCompleted = transferFiles();
+            if (transferCompleted) {
+                runNextClass();
+            } else {
+                System.out.println("File transfer failed. Aborting execution of the next class.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean transferFiles() throws Exception {
+        // Command to transfer files
+        List<String> command = Arrays.asList("cmd.exe", "/C", FILE_TRANSFER_COMMAND);
+
+        // ProcessBuilder to run the file transfer command
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.redirectErrorStream(true);
+
+        // Execute the file transfer command
+        Process process = processBuilder.start();
+
+        // Read the process output
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+
+        // Wait for the process to complete
+        int exitCode = process.waitFor();
+        return exitCode == 0;
+    }
+
+    private static void runNextClass() throws Exception {
+        // JMeter command or any other class execution
+        List<String> command = Arrays.asList(
+            "java",
+            "-jar", "path/to/your/jmeter/bin/ApacheJMeter.jar",
+            "-n",
+            "-t", "path/to/your/testplan.jmx",
+            "-l", "path/to/your/results.jtl",
+            "-j", "path/to/your/jmeter.log"
+        );
+
+        // ProcessBuilder to run the command
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.directory(new File("path/to/your/jmeter/bin"));
+        processBuilder.redirectErrorStream(true);
+
+        // Execute the command
+        Process process = processBuilder.start();
+
+        // Read the process output
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+
+        // Wait for the process to complete
+        int exitCode = process.waitFor();
+        if (exitCode == 0) {
+            System.out.println("Next class executed successfully.");
+        } else {
+            System.out.println("Next class execution failed with exit code " + exitCode);
+        }
+    }
+}
